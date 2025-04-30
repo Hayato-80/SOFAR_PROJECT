@@ -1,6 +1,6 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 import os
@@ -19,13 +19,13 @@ def generate_launch_description():
     params_path = os.path.join(
         get_package_share_directory(package_name),
         'config',
-        'nav2_params2.yaml'
+        'nav2_params2_sim.yaml'
     )
 
-    rviz_config_default = os.path.join(
-        get_package_share_directory('nav2_bringup'),
-        'rviz',
-        'nav2_default_view.rviz'
+    rviz_config = os.path.join(
+        get_package_share_directory(package_name),
+        'config',
+        'nnavigation.rviz'
     )
 
     bringup_launch = PathJoinSubstitution([
@@ -39,7 +39,7 @@ def generate_launch_description():
         executable='rviz2',
         name='rviz2',
         output='screen',
-        arguments=['-d', LaunchConfiguration('rviz_config')],
+        arguments=['-d', rviz_config],
     )
 
     static1 = Node(
@@ -50,18 +50,12 @@ def generate_launch_description():
 
 
     return LaunchDescription([
-        DeclareLaunchArgument(
-            'rviz_config',
-            default_value=rviz_config_default,
-            description='Path to the RVIZ config file'
-        ),
-
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(bringup_launch),
             launch_arguments={
                 'map': map_file,
                 'params_file': params_path,
-                'use_sim_time': 'false'
+                'use_sim_time': 'true'
             }.items()
         ),
 

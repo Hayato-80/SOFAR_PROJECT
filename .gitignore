@@ -2,6 +2,7 @@
 build/
 install/
 log/
+rosbag_real/
 
 # If your workspace is not at the root
 **/build/
