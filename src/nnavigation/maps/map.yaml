@@ -1,4 +1,4 @@
-image: beacon_map_can.png
+image: map.png
 resolution: 0.01
 origin: [-0.144, 0.0, 0.0]
 occupied_thresh: 1

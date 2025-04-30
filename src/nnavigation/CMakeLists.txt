@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(planning)
+project(nnavigation)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -21,8 +21,6 @@ install(DIRECTORY launch config maps
     DESTINATION share/${PROJECT_NAME}/
 )
 
-ament_auto_add_executable(driving_node src/driving_node.cpp)
-ament_target_dependencies(driving_node rclcpp tf2_ros tf2_geometry_msgs nav_msgs geometry_msgs my_interfaces)
 
 
 ament_auto_package()
