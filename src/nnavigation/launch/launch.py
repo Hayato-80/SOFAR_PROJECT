@@ -48,15 +48,19 @@ def generate_launch_description():
         arguments=['0', '0', '0', '0', '0', '0', 'map', 'waffle2/odom']
     )
 
-    # robot_state_publisher = Node(
-    #     package='robot_state_publisher',
-    #     executable='robot_state_publisher',
-    #     name='robot_state_publisher',
-    #     output='screen',
-    #     parameters=[{'use_sim_time': True}],
-    #     remappings=[
-    #         ('/robot_description', '/waffle2/robot_description')
-    #     ]
+    # map_server_node = TimerAction(
+    #     period=2.0,
+    #     actions=[Node(
+    #         package='nav2_map_server',
+    #         executable='map_server',
+    #         name='map_server',
+    #         output='screen',
+    #         parameters=[{
+    #             'yaml_filename': map_file,
+    #             'use_sim_time': False,
+    #             'frame_id': 'map'
+    #         }]
+    #     )]
     # )
 
 

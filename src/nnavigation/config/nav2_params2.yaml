@@ -55,6 +55,12 @@ bt_navigator:
     - nav2_assisted_teleop_cancel_bt_node
     - nav2_drive_on_heading_cancel_bt_node
 
+map_server:
+  ros__parameters:
+    use_sim_time: false
+    yaml_filename: ./config/map.yaml
+
+
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
     use_sim_time: false
@@ -92,7 +98,7 @@ controller_server:
       wz_max: 6.0
       iteration_count: 1
       prune_distance: 1.7
-      transform_tolerance: 0.1
+      transform_tolerance: 1.0 ######################
       temperature: 0.3
       gamma: 0.015
       motion_model: "DiffDrive"
@@ -178,12 +184,23 @@ local_costmap:
       plugins: ["static_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer" #######expand the obstacle area
-        cost_scaling_factor: 2.0 # Distance around obstacle to inflate
-        inflation_radius: 1.0 # How sharply cost drops with distance
+        cost_scaling_factor: 0.2 # Distance around obstacle to inflate
+        inflation_radius: 0.2 # How sharply cost drops with distance
+      # obstacle_layer:
+      #   plugin: "nav2_costmap_2d::ObstacleLayer"
+      #   enabled: True
+      #   observation_sources: scan
+      #   scan:
+      #     topic: /waffle2/scan
+      #     max_obstacle_height: 2.0
+      #     clearing: True
+      #     marking: True
+      #     data_type: "LaserScan"
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
       always_send_full_costmap: True
+      transform_tolerance: 1.0
 
 global_costmap:
   global_costmap:
@@ -217,9 +234,10 @@ global_costmap:
         map_subscribe_transient_local: True
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 1.75
+        cost_scaling_factor: 0.2
+        inflation_radius: 0.2
       always_send_full_costmap: True
+      transform_tolerance: 1.0
 
 
 
