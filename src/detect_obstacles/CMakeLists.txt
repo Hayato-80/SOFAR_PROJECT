@@ -10,6 +10,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 
 add_executable(find_obstacles src/find_obstacles.cpp)
 target_include_directories(find_obstacles PUBLIC
@@ -21,6 +23,8 @@ ament_target_dependencies(
   "rclcpp"
   "std_msgs"
   "geometry_msgs"
+  "sensor_msgs"
+  "nav_msgs"
 )
 
 install(TARGETS find_obstacles
