@@ -19,7 +19,7 @@ def generate_launch_description():
     params_path = os.path.join(
         get_package_share_directory(package_name),
         'config',
-        'nav2_params2_sim.yaml'
+        'nav2_params2.yaml'
     )
 
     rviz_config = os.path.join(
@@ -48,17 +48,31 @@ def generate_launch_description():
         arguments=['0', '0', '0', '0', '0', '0', 'map', 'waffle2/odom']
     )
 
+    # robot_state_publisher = Node(
+    #     package='robot_state_publisher',
+    #     executable='robot_state_publisher',
+    #     name='robot_state_publisher',
+    #     output='screen',
+    #     parameters=[{'use_sim_time': True}],
+    #     remappings=[
+    #         ('/robot_description', '/waffle2/robot_description')
+    #     ]
+    # )
+
+
 
     return LaunchDescription([
+        rviz_node,
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(bringup_launch),
             launch_arguments={
                 'map': map_file,
                 'params_file': params_path,
-                'use_sim_time': 'true'
+                'use_sim_time': 'false'
             }.items()
         ),
 
-        rviz_node,
+        
+        # robot_state_publisher,
         static1
                 ])
