@@ -13,6 +13,11 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+
+
 add_executable(find_obstacles src/find_obstacles.cpp)
 target_include_directories(find_obstacles PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -29,6 +34,29 @@ ament_target_dependencies(
 
 install(TARGETS find_obstacles
   DESTINATION lib/${PROJECT_NAME})
+
+
+add_executable(potential_field_node src/potential_field.cpp)
+ament_target_dependencies(potential_field_node
+  rclcpp
+  geometry_msgs
+  sensor_msgs
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
+)
+
+install(TARGETS
+  potential_field_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+
+
+install(
+  DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

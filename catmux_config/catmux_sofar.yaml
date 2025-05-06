@@ -7,7 +7,7 @@ common:
     - source ~/.bashrc && cd mov_ws # before commands can be specified global and per window
 
   # The default window will be the one displayed when first connecting to the tmux session
-  default_window: some_other_window
+  default_window: gazebo
 parameters:
   # Parameters specified here can be used below and they can be overwritten at runtime
   show_layouts: true # This parameter is used together with the if flag below
@@ -21,57 +21,19 @@ windows:
     splits:
       - commands:
         - ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py
-  - name: rviz
-    if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
-    layout: no_split # One can use the default layouts specified by tmux
-    splits:
-      - commands:
-        - rviz2
-  - name: teleop
-    if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
-    layout: no_split # One can use the default layouts specified by tmux
-    splits:
-      - commands:
-        - ros2 run turtlebot3_teleop teleop_keyboard
-  - name: obstacle_detection
-    if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
-    layout: no_split # One can use the default layouts specified by tmux
-    splits:
-      - commands:
-        - ros2 run detect_obstacles find_obstacles
-  # - name: navigation
+  # - name: rviz
   #   if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
-  #   layout: tiled # One can use the default layouts specified by tmux
+  #   layout: no_split # One can use the default layouts specified by tmux
   #   splits:
   #     - commands:
-  #       - ros2 launch mobro_gazebo mobro_gazebo.launch.py
-  #     - commands:
-  #       - ros2 launch nav2_bringup localization_launch.py map:=./first_map_save.yaml use_sim_time:=true
-  #     - commands:
-  #       - ros2 launch nav2_bringup navigation_launch.py use_sim_time:=true map_subscribe_transient_local:=true
+  #       - rviz2
+  - name: navigation
+    if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
+    layout: no_split # One can use the default layouts specified by tmux
+    splits:
+      - commands:
+        - ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:=$HOME/mov_ws/src/SOFAR_PROJECT/map.yaml
 
-  # - name: left-right
-  #   if: show_layouts
-  #   layout: even-horizontal
-  #   splits:
-  #     - commands:
-  #       - echo "left"
-  #     - commands:
-  #       - echo "right"
-  # - name: top-bottom
-  #   if: show_layouts
-  #   layout: even-vertical
-  #   splits:
-  #     - commands:
-  #       - echo "top"
-  #     - commands:
-  #       - echo "bottom"
-  # - name: no_split
-  #   unless: show_layouts # This window will only be displayed if 'show_layouts' is false
-  #   # If just one split is desired, just skip it and write the commands directly
-  #   commands:
-  #     - echo "hello ${replacement_param}"
-  #   delay: 1 # Use this to wait before starting the next window
   - name: some_other_window
     if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
     layout: no_split # One can use the default layouts specified by tmux
