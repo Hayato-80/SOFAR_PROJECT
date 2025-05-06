@@ -94,22 +94,44 @@ private:
         }
 
         
-        try{
-            //tf = tf_buffer_ -> lookupTransform("map","base_link", tf2::TimePointZero);
-            tf = tf_buffer_ -> lookupTransform("odom","base_link", rclcpp::Time(0));
+        // try{
+        //     //tf = tf_buffer_ -> lookupTransform("map","base_link", tf2::TimePointZero);
+        //     tf = tf_buffer_ -> lookupTransform("odom","base_link", rclcpp::Time(0));
 
-        } catch(tf2::TransformException &ex){
-            RCLCPP_WARN(this->get_logger(), "Could not transform base_link to map: %s", ex.what());
-            return;
-        }
-
+        // } catch(tf2::TransformException &ex){
+        //     RCLCPP_WARN(this->get_logger(), "Could not transform base_link to map: %s", ex.what());
+        //     return;
+        // }
+        geometry_msgs::msg::PoseStamped goal_pose = goal_pose_;
+        goal_pose.header.stamp = this->get_clock()->now();
         
         try {
-            goal_in_base = tf_buffer_->transform(goal_pose_, "odom");
+            goal_in_base = tf_buffer_->transform(goal_pose, "odom");
         } catch (tf2::TransformException &ex) {
             RCLCPP_WARN(this->get_logger(), "Transform to base_link failed: %s", ex.what());
             return;
         }
+        geometry_msgs::msg::TransformStamped tf_odom_to_base_footprint;
+        geometry_msgs::msg::TransformStamped tf_base_footprint_to_base_link;
+        try {
+            // First, get the transform from odom to base_footprint
+            tf_odom_to_base_footprint = tf_buffer_->lookupTransform("odom", "base_footprint", tf2::TimePointZero);
+            
+            // Then, get the transform from base_footprint to base_link
+            tf_base_footprint_to_base_link = tf_buffer_->lookupTransform("base_footprint", "base_link", tf2::TimePointZero);
+        } catch (tf2::TransformException &ex) {
+            RCLCPP_WARN(this->get_logger(), "Could not transform from odom to base_footprint or base_footprint to base_link: %s", ex.what());
+            return;
+        }
+
+        // Combine the transforms
+        geometry_msgs::msg::TransformStamped tf_combined;
+        tf_combined.header.stamp = tf_odom_to_base_footprint.header.stamp;
+        tf_combined.header.stamp = tf_odom_to_base_footprint.header.stamp;
+        tf_combined.transform.translation.x = tf_odom_to_base_footprint.transform.translation.x + tf_base_footprint_to_base_link.transform.translation.x;
+        tf_combined.transform.translation.y = tf_odom_to_base_footprint.transform.translation.y + tf_base_footprint_to_base_link.transform.translation.y;
+        tf_combined.transform.translation.z = tf_odom_to_base_footprint.transform.translation.z + tf_base_footprint_to_base_link.transform.translation.z;
+
         float dx = goal_in_base.pose.position.x;
         float dy = goal_in_base.pose.position.y;
         // float dx = goal_pose_.pose.position.x - tf.transform.translation.x;
@@ -128,7 +150,7 @@ private:
         }
         V_attraction_ = {dx, dy};
 
-        double repulsion_scale = 0.6;  // try smaller values like 0.3–0.6
+        double repulsion_scale = 0.3;  // try smaller values like 0.3–0.6
         double attraction_scale = 1.0;
         float x_final = attraction_scale*V_attraction_[0] + repulsion_scale*V_repulsion_[0];
         float y_final = attraction_scale*V_attraction_[1] + repulsion_scale*V_repulsion_[1];
