@@ -33,7 +33,7 @@ def generate_launch_description():
             name='slam_toolbox',
             output='screen',
             parameters=[{
-                'use_sim_time': True,
+                'use_sim_time': False,
                 'odom_frame': 'waffle2/odom',
                 'base_frame': 'waffle2/base_link',
                 'scan_topic': '/waffle2/scan',
@@ -53,5 +53,7 @@ def generate_launch_description():
             name='rviz2',
             output='screen',
             arguments=['-d', config_path],
-        )
+        ),
+
+
     ])
