@@ -23,17 +23,37 @@ target_include_directories(find_obstacles PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 target_compile_features(find_obstacles PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(
-  find_obstacles
-  "rclcpp"
-  "std_msgs"
-  "geometry_msgs"
-  "sensor_msgs"
-  "nav_msgs"
+ament_target_dependencies(find_obstacles
+  rclcpp
+  geometry_msgs
+  sensor_msgs
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
 )
 
 install(TARGETS find_obstacles
   DESTINATION lib/${PROJECT_NAME})
+
+
+add_executable(create_map src/create_map.cpp)
+target_include_directories(create_map PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(create_map PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(create_map
+  rclcpp
+  geometry_msgs
+  sensor_msgs
+  nav_msgs
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
+)
+
+install(TARGETS create_map
+  DESTINATION lib/${PROJECT_NAME})
+
 
 
 add_executable(potential_field_node src/potential_field.cpp)
@@ -51,10 +71,23 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# ament_auto_add_executable(pose_service src/get_obstacle_pose.cpp)
+# ament_target_dependencies(pose_service 
+#   rclcpp 
+#   my_interfaces
+#   geometry_msgs
+#   tf2
+#   tf2_ros
+#   tf2_geometry_msgs
+# )
+ 
+# install(TARGETS
+#    pose_service
+#    DESTINATION lib/${PROJECT_NAME})
 
 
 install(
-  DIRECTORY config
+  DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME}
 )
 
