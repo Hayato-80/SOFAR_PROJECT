@@ -15,6 +15,7 @@ class PotentialField : public rclcpp::Node {
 public:
     PotentialField() : Node("potential_field_node")
   {
+    //this->declare_parameter("use_sim_time", true);
     //auto qos = rclcpp::QoS(rclcpp::KeepLast(1)).transient_local();
 
     subscription_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
@@ -60,7 +61,8 @@ private:
 
     geometry_msgs::msg::PoseStamped create_vector_pose(double x, double y) {
         geometry_msgs::msg::PoseStamped vector;
-        vector.header.frame_id = "base_link";
+        //vector.header.frame_id = "waffle2/base_link";
+        vector.header.frame_id = "waffle2/base_footprint";
         vector.header.stamp = this -> get_clock() -> now();
         vector.pose.position.x = 0.0;
         vector.pose.position.y = 0.0;
@@ -106,7 +108,7 @@ private:
         goal_pose.header.stamp = this->get_clock()->now();
         
         try {
-            goal_in_base = tf_buffer_->transform(goal_pose, "odom");
+            goal_in_base = tf_buffer_->transform(goal_pose, "odom_new");
         } catch (tf2::TransformException &ex) {
             RCLCPP_WARN(this->get_logger(), "Transform to base_link failed: %s", ex.what());
             return;
@@ -115,22 +117,22 @@ private:
         geometry_msgs::msg::TransformStamped tf_base_footprint_to_base_link;
         try {
             // First, get the transform from odom to base_footprint
-            tf_odom_to_base_footprint = tf_buffer_->lookupTransform("odom", "base_footprint", tf2::TimePointZero);
+            tf_odom_to_base_footprint = tf_buffer_->lookupTransform("odom_new", "waffle2/base_footprint", tf2::TimePointZero);
             
             // Then, get the transform from base_footprint to base_link
-            tf_base_footprint_to_base_link = tf_buffer_->lookupTransform("base_footprint", "base_link", tf2::TimePointZero);
+            //tf_base_footprint_to_base_link = tf_buffer_->lookupTransform("base_footprint", "base_link", tf2::TimePointZero);
         } catch (tf2::TransformException &ex) {
             RCLCPP_WARN(this->get_logger(), "Could not transform from odom to base_footprint or base_footprint to base_link: %s", ex.what());
             return;
         }
 
         // Combine the transforms
-        geometry_msgs::msg::TransformStamped tf_combined;
-        tf_combined.header.stamp = tf_odom_to_base_footprint.header.stamp;
-        tf_combined.header.stamp = tf_odom_to_base_footprint.header.stamp;
-        tf_combined.transform.translation.x = tf_odom_to_base_footprint.transform.translation.x + tf_base_footprint_to_base_link.transform.translation.x;
-        tf_combined.transform.translation.y = tf_odom_to_base_footprint.transform.translation.y + tf_base_footprint_to_base_link.transform.translation.y;
-        tf_combined.transform.translation.z = tf_odom_to_base_footprint.transform.translation.z + tf_base_footprint_to_base_link.transform.translation.z;
+        //geometry_msgs::msg::TransformStamped tf_combined;
+        // tf_combined.header.stamp = tf_odom_to_base_footprint.header.stamp;
+        // tf_combined.header.stamp = tf_odom_to_base_footprint.header.stamp;
+        // tf_combined.transform.translation.x = tf_odom_to_base_footprint.transform.translation.x + tf_base_footprint_to_base_link.transform.translation.x;
+        // tf_combined.transform.translation.y = tf_odom_to_base_footprint.transform.translation.y + tf_base_footprint_to_base_link.transform.translation.y;
+        // tf_combined.transform.translation.z = tf_odom_to_base_footprint.transform.translation.z + tf_base_footprint_to_base_link.transform.translation.z;
 
         float dx = goal_in_base.pose.position.x;
         float dy = goal_in_base.pose.position.y;
@@ -158,10 +160,14 @@ private:
         double target_angle = std::atan2(y_final, x_final);
         
         tf2::Quaternion q(
-            tf.transform.rotation.x,
-            tf.transform.rotation.y,
-            tf.transform.rotation.z,
-            tf.transform.rotation.w
+            // tf.transform.rotation.x,
+            // tf.transform.rotation.y,
+            // tf.transform.rotation.z,
+            // tf.transform.rotation.w
+            tf_odom_to_base_footprint.transform.rotation.x,
+            tf_odom_to_base_footprint.transform.rotation.y,
+            tf_odom_to_base_footprint.transform.rotation.z,
+            tf_odom_to_base_footprint.transform.rotation.w
         );
         tf2::Matrix3x3 m(q);
         double roll, pitch, yaw;
@@ -213,6 +219,7 @@ private:
 
     void lidar_callback(const sensor_msgs::msg::LaserScan::SharedPtr msg)
     {
+        msg->header.stamp = this->get_clock()->now();
         // Calculate the angle of the current range
         double angle_min = msg->angle_min;
         double angle_increment = msg->angle_increment;
