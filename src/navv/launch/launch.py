@@ -10,12 +10,7 @@ PACKAGE_NAME = 'navv'
 def generate_launch_description():
     return LaunchDescription([
         
-        Node(
-            package=PACKAGE_NAME,
-            executable='my_node',
-            name='my_node',
-            output='screen'
-        ),
+
         Node(
             package='rviz2',
             executable='rviz2', 
@@ -30,6 +25,22 @@ def generate_launch_description():
             name='static_transform_publisher',
             output='screen',
             arguments=['-5.5', '-5.5', '0', '0', '0', '0', 'map', 'odom']
+        ),
+
+        Node(
+            package='turt_localization',
+            executable='turt_localize',
+            name='turt_localize',
+            output='screen',
+            parameters=[{'use_sim_time': True}]
+        ),
+
+        Node(
+            package='detect_obstacles',
+            executable='create_map',
+            name='create_map_node',
+            output='screen',
+            parameters=[{'use_sim_time': True}]
         ),
 
         Node(
