@@ -34,7 +34,7 @@ namespace navv
             tf_listener = std::make_shared<tf2_ros::TransformListener>(tf_buffer);
 
             sub_pose = this->create_subscription<nav_msgs::msg::Odometry>(
-                "/waffle2/odom_joint_states", 10, std::bind(&DrivingNode::my_callback, this, std::placeholders::_1));
+                "/waffle2/odom_fhj", 10, std::bind(&DrivingNode::my_callback, this, std::placeholders::_1));
 
             sub_goal_pose = this->create_subscription<geometry_msgs::msg::PoseStamped>(
                 "/goal_pose", 10, std::bind(&DrivingNode::goal_pose_callback, this, std::placeholders::_1));
@@ -94,14 +94,14 @@ namespace navv
 
             // Transform the goal pose from its current frame to the "odom" frame
             geometry_msgs::msg::TransformStamped transform_stamped;
-            transform_stamped = tf_buffer.lookupTransform("odom", goal_msg.header.frame_id, tf2::TimePointZero);
+            transform_stamped = tf_buffer.lookupTransform("waffle2/odom_frame_fhj", goal_msg.header.frame_id, tf2::TimePointZero);
             geometry_msgs::msg::PoseStamped transformed_goal;
             tf2::doTransform(goal_msg, transformed_goal, transform_stamped);
             goal_msg = transformed_goal; // Update the goal_msg with the transformed pose
 
             // Add a marker to visualize the goal
             visualization_msgs::msg::Marker goal_marker;
-            goal_marker.header.frame_id = "odom";
+            goal_marker.header.frame_id = "waffle2/odom_frame_fhj";
             goal_marker.header.stamp = this->now();
             goal_marker.ns = "goal_marker";
             goal_marker.id = 0;

@@ -108,7 +108,7 @@ private:
         goal_pose.header.stamp = this->get_clock()->now();
         
         try {
-            goal_in_base = tf_buffer_->transform(goal_pose, "odom_new");
+            goal_in_base = tf_buffer_->transform(goal_pose, "waffle2/odom_frame_fhj");
         } catch (tf2::TransformException &ex) {
             RCLCPP_WARN(this->get_logger(), "Transform to base_link failed: %s", ex.what());
             return;
@@ -117,7 +117,7 @@ private:
         geometry_msgs::msg::TransformStamped tf_base_footprint_to_base_link;
         try {
             // First, get the transform from odom to base_footprint
-            tf_odom_to_base_footprint = tf_buffer_->lookupTransform("odom_new", "waffle2/base_footprint", tf2::TimePointZero);
+            tf_odom_to_base_footprint = tf_buffer_->lookupTransform("waffle2/odom_frame_fhj", "waffle2/base_footprint", tf2::TimePointZero);
             
             // Then, get the transform from base_footprint to base_link
             //tf_base_footprint_to_base_link = tf_buffer_->lookupTransform("base_footprint", "base_link", tf2::TimePointZero);

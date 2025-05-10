@@ -29,13 +29,13 @@ class MyNode : public rclcpp::Node
                     "/waffle2/joint_states", 10, std::bind(&MyNode::my_callback, this, std::placeholders::_1));
 
         // init publishers
-        my_publisher = this->create_publisher<nav_msgs::msg::Odometry>("/odom_joint_states", 10);   // topic + QoS
+        my_publisher = this->create_publisher<nav_msgs::msg::Odometry>("/waffle2/odom_fhj", 10);   // topic + QoS
         
         tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this); // broadcasts the transformation
 
         past_time = this->now(); // used for velocity
 
-        RCLCPP_INFO(this->get_logger(), "odom_joint_states node started");
+        RCLCPP_INFO(this->get_logger(), "/waffle2/odom_fhj node started");
     }
 
   private:
@@ -90,7 +90,7 @@ class MyNode : public rclcpp::Node
       nav_msgs::msg::Odometry out_msg; //
 
       // Header stuff
-      out_msg.header.frame_id = "odom_new"; // link frames
+      out_msg.header.frame_id = "waffle2/odom_frame_fhj"; // link frames
       out_msg.child_frame_id = "waffle2/base_footprint"; // to the base frame
       
 
@@ -121,7 +121,7 @@ class MyNode : public rclcpp::Node
       transform.transform.rotation.w = quat.w();
 
       transform.header.stamp = this->get_clock()->now();
-      transform.header.frame_id = "odom_new";
+      transform.header.frame_id = "waffle2/odom_frame_fhj";
       transform.child_frame_id = "waffle2/base_footprint";
 
       my_publisher->publish(out_msg);

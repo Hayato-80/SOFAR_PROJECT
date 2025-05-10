@@ -19,12 +19,13 @@ def generate_launch_description():
             parameters=[{'use_sim_time': True}],
             arguments=['-d', PathJoinSubstitution([get_package_share_directory(PACKAGE_NAME), 'config', 'config.rviz'])]
         ),
+
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
             name='static_transform_publisher',
             output='screen',
-            arguments=['-5.5', '-5.5', '0', '0', '0', '0', 'map', 'odom']
+            arguments=['0', '0', '0', '0', '0', '0', 'map', 'waffle2/odom_frame_fhj']
         ),
 
         Node(
