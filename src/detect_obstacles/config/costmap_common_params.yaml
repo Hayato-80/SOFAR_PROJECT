@@ -1,0 +1,15 @@
+obstacle_layer:
+  enabled: true
+  observation_sources: laser_scan
+  laser_scan:
+    topic: /scan
+    sensor_frame: base_link
+    data_type: LaserScan
+    clearing: true
+    marking: true
+
+static_layer:
+  enabled: true
+
+inflation_layer:
+  enabled: true

@@ -26,16 +26,16 @@ class MyNode : public rclcpp::Node
 
         // init subscribers
         my_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
-                    "/waffle2/joint_states", 10, std::bind(&MyNode::my_callback, this, std::placeholders::_1));
+                    "/joint_states", 10, std::bind(&MyNode::my_callback, this, std::placeholders::_1));
 
         // init publishers
-        my_publisher = this->create_publisher<nav_msgs::msg::Odometry>("/waffle2/odom_fhj", 10);   // topic + QoS
+        my_publisher = this->create_publisher<nav_msgs::msg::Odometry>("/odom_fhj", 10);   // topic + QoS
         
         tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this); // broadcasts the transformation
 
         past_time = this->now(); // used for velocity
 
-        RCLCPP_INFO(this->get_logger(), "/waffle2/odom_fhj node started");
+        RCLCPP_INFO(this->get_logger(), "/odom_fhj node started");
     }
 
   private:
@@ -67,7 +67,10 @@ class MyNode : public rclcpp::Node
         past_right_value = rightPosition;
         first_reading = false;
       }
-      rclcpp::Time current_time = this->now();
+      //rclcpp::Time current_time = this->now();
+      rclcpp::Time current_time = msg.header.stamp.sec != 0 || msg.header.stamp.nanosec != 0
+                                  ? rclcpp::Time(msg.header.stamp)
+                                  : this->now();
       double delta_t{(current_time - past_time).seconds()}; 
 
       double delta_q_l{leftPosition - past_left_value}, 
@@ -90,8 +93,9 @@ class MyNode : public rclcpp::Node
       nav_msgs::msg::Odometry out_msg; //
 
       // Header stuff
-      out_msg.header.frame_id = "waffle2/odom_frame_fhj"; // link frames
-      out_msg.child_frame_id = "waffle2/base_footprint"; // to the base frame
+      out_msg.header.frame_id = "odom_frame_fhj"; // link frames
+      out_msg.child_frame_id = "base_footprint"; // to the base frame
+      out_msg.header.stamp = current_time;
       
 
       // Set position:
@@ -120,9 +124,10 @@ class MyNode : public rclcpp::Node
       transform.transform.rotation.z = quat.z();
       transform.transform.rotation.w = quat.w();
 
-      transform.header.stamp = this->get_clock()->now();
-      transform.header.frame_id = "waffle2/odom_frame_fhj";
-      transform.child_frame_id = "waffle2/base_footprint";
+      // transform.header.stamp = this->get_clock()->now();
+      transform.header.stamp = current_time;
+      transform.header.frame_id = "odom_frame_fhj";
+      transform.child_frame_id = "base_footprint";
 
       my_publisher->publish(out_msg);
       tf_broadcaster->sendTransform(transform);

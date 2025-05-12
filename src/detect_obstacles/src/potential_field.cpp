@@ -61,11 +61,10 @@ private:
 
     geometry_msgs::msg::PoseStamped create_vector_pose(double x, double y) {
         geometry_msgs::msg::PoseStamped vector;
-        //vector.header.frame_id = "waffle2/base_link";
-        vector.header.frame_id = "waffle2/base_footprint";
-        vector.header.stamp = this -> get_clock() -> now();
-        vector.pose.position.x = 0.0;
-        vector.pose.position.y = 0.0;
+        vector.header.frame_id = "base_footprint";
+        vector.header.stamp = this->get_clock()->now();
+        vector.pose.position.x = x;
+        vector.pose.position.y = y;
         vector.pose.position.z = 0.0;
         double angle = atan2(y, x);
         tf2::Quaternion q;
@@ -87,7 +86,7 @@ private:
     void controller()
     {
         geometry_msgs::msg::TransformStamped tf;
-        geometry_msgs::msg::PoseStamped goal_in_base;
+        geometry_msgs::msg::PoseStamped goal_in_odom;
         geometry_msgs::msg::Twist cmd_msg;
 
         if(!if_goal_){
@@ -105,19 +104,23 @@ private:
         //     return;
         // }
         geometry_msgs::msg::PoseStamped goal_pose = goal_pose_;
-        goal_pose.header.stamp = this->get_clock()->now();
+        goal_pose.pose.orientation.x = 0.0;
+        goal_pose.pose.orientation.y = 0.0;
+        goal_pose.pose.orientation.z = 0.0;
+        goal_pose.pose.orientation.w = 1.0;
+        //goal_pose.header.stamp = this->get_clock()->now();
         
         try {
-            goal_in_base = tf_buffer_->transform(goal_pose, "waffle2/odom_frame_fhj");
+            goal_in_odom = tf_buffer_->transform(goal_pose, "base_footprint");
         } catch (tf2::TransformException &ex) {
             RCLCPP_WARN(this->get_logger(), "Transform to base_link failed: %s", ex.what());
             return;
         }
         geometry_msgs::msg::TransformStamped tf_odom_to_base_footprint;
-        geometry_msgs::msg::TransformStamped tf_base_footprint_to_base_link;
+        //geometry_msgs::msg::TransformStamped tf_base_footprint_to_base_link;
         try {
             // First, get the transform from odom to base_footprint
-            tf_odom_to_base_footprint = tf_buffer_->lookupTransform("waffle2/odom_frame_fhj", "waffle2/base_footprint", tf2::TimePointZero);
+            tf_odom_to_base_footprint = tf_buffer_->lookupTransform("odom_frame_fhj", "base_footprint", tf2::TimePointZero);
             
             // Then, get the transform from base_footprint to base_link
             //tf_base_footprint_to_base_link = tf_buffer_->lookupTransform("base_footprint", "base_link", tf2::TimePointZero);
@@ -134,8 +137,12 @@ private:
         // tf_combined.transform.translation.y = tf_odom_to_base_footprint.transform.translation.y + tf_base_footprint_to_base_link.transform.translation.y;
         // tf_combined.transform.translation.z = tf_odom_to_base_footprint.transform.translation.z + tf_base_footprint_to_base_link.transform.translation.z;
 
-        float dx = goal_in_base.pose.position.x;
-        float dy = goal_in_base.pose.position.y;
+        float dx = goal_in_odom.pose.position.x;
+        float dy = goal_in_odom.pose.position.y;
+
+        // float dx = goal_in_odom.pose.position.x - tf_odom_to_base_footprint.transform.translation.x;
+        // float dy = goal_in_odom.pose.position.y - tf_odom_to_base_footprint.transform.translation.y;
+
         // float dx = goal_pose_.pose.position.x - tf.transform.translation.x;
         // float dy = goal_pose_.pose.position.y - tf.transform.translation.y;
         
@@ -152,28 +159,30 @@ private:
         }
         V_attraction_ = {dx, dy};
 
-        double repulsion_scale = 0.3;  // try smaller values like 0.3–0.6
+        double repulsion_scale = 0.01;  // try smaller values like 0.3–0.6
         double attraction_scale = 1.0;
         float x_final = attraction_scale*V_attraction_[0] + repulsion_scale*V_repulsion_[0];
         float y_final = attraction_scale*V_attraction_[1] + repulsion_scale*V_repulsion_[1];
 
         double target_angle = std::atan2(y_final, x_final);
         
-        tf2::Quaternion q(
-            // tf.transform.rotation.x,
-            // tf.transform.rotation.y,
-            // tf.transform.rotation.z,
-            // tf.transform.rotation.w
-            tf_odom_to_base_footprint.transform.rotation.x,
-            tf_odom_to_base_footprint.transform.rotation.y,
-            tf_odom_to_base_footprint.transform.rotation.z,
-            tf_odom_to_base_footprint.transform.rotation.w
-        );
-        tf2::Matrix3x3 m(q);
-        double roll, pitch, yaw;
-        m.getRPY(roll, pitch, yaw);
+        // tf2::Quaternion q(
+        //     // tf.transform.rotation.x,
+        //     // tf.transform.rotation.y,
+        //     // tf.transform.rotation.z,
+        //     // tf.transform.rotation.w
+        //     tf_odom_to_base_footprint.transform.rotation.x,
+        //     tf_odom_to_base_footprint.transform.rotation.y,
+        //     tf_odom_to_base_footprint.transform.rotation.z,
+        //     tf_odom_to_base_footprint.transform.rotation.w
+        // );
+        // tf2::Matrix3x3 m(q);
+        // double roll, pitch, yaw;
+        // m.getRPY(roll, pitch, yaw);
         
-        double angle_diff = target_angle - yaw;
+        //double angle_diff = target_angle - yaw;
+
+        double angle_diff = target_angle;
         
         // Normalize angle_diff to [-π, π]
         while (angle_diff > M_PI) angle_diff -= 2 * M_PI;
@@ -184,14 +193,11 @@ private:
         double angle_tolerance = 0.05;  // ~3 degrees
         if (std::abs(angle_diff) > angle_tolerance) {
             geometry_msgs::msg::Twist cmd_msg;
-            cmd_msg.linear.x = 0.0;  // No forward motion while turning
-            double angular_speed = angle_diff;  // Turn toward the goal direction
-    
-            // Control angular speed: clamp it to a reasonable range
+            cmd_msg.linear.x = 0.05;  // Allow small forward motion while turning
+            double angular_speed = angle_diff;
             if (angular_speed > 1.0) angular_speed = 1.0;
             if (angular_speed < -1.0) angular_speed = -1.0;
-            
-            cmd_msg.angular.z = angular_speed; // Rotate towards the goal
+            cmd_msg.angular.z = angular_speed;
             cmd_pub_->publish(cmd_msg);
             return;
         }
