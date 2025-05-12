@@ -20,7 +20,7 @@ public:
         // qos.reliable(); // Set to RELIABLE
 
         scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
-            "/waffle2/scan", 10, std::bind(&ObstacleDetector::lidarCallback, this, std::placeholders::_1));
+            "/new_scan", 10, std::bind(&ObstacleDetector::lidarCallback, this, std::placeholders::_1));
 
         RCLCPP_INFO(this->get_logger(), "ObstacleDetector node initialized.");
 
@@ -71,8 +71,8 @@ private:
         //tf_broadcaster_->sendTransform(map_to_odom);
         
         // cluster settings
-        const float min_box_size = 0.05;
-        const float max_box_size = 2.0;
+        const float min_box_size = 0.15;
+        const float max_box_size = 3.0;
         const float cluster_tolerance = 0.5;
 
         std::vector<std::pair<float, float>> cluster_points;
@@ -153,7 +153,7 @@ private:
 
                     try {
                         geometry_msgs::msg::PointStamped transformed_point;
-                        transformed_point = tf_buffer_.transform(obstacle_point, "map", tf2::durationFromSec(1.0));
+                        transformed_point = tf_buffer_.transform(obstacle_point, "map", tf2::durationFromSec(2.0));
                         int mx = static_cast<int>((transformed_point.point.x - grid_.info.origin.position.x) / grid_.info.resolution);
                         int my = static_cast<int>((transformed_point.point.y - grid_.info.origin.position.y) / grid_.info.resolution);
                         if (mx >= 0 && mx < static_cast<int>(grid_.info.width) &&

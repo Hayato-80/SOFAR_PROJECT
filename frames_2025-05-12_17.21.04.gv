@@ -1,0 +1,18 @@
+digraph G {
+"map" -> "odom_frame_fhj"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"odom_frame_fhj" -> "waffle2/base_footprint"[label=" Broadcaster: default_authority\nAverage rate: 38.636\nBuffer length: 4.4\nMost recent transform: 1740064017.070767\nOldest transform: 1740064012.670773\n"];
+"waffle2/base_link" -> "waffle2/wheel_left_link"[label=" Broadcaster: default_authority\nAverage rate: 12.224\nBuffer length: 3.599\nMost recent transform: 1740064017.070767\nOldest transform: 1740064013.471431\n"];
+"waffle2/base_footprint" -> "waffle2/base_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/base_link" -> "waffle2/wheel_right_link"[label=" Broadcaster: default_authority\nAverage rate: 12.224\nBuffer length: 3.599\nMost recent transform: 1740064017.070767\nOldest transform: 1740064013.471431\n"];
+"waffle2/base_link" -> "waffle2/camera_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/camera_link" -> "waffle2/camera_rgb_frame"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/camera_rgb_frame" -> "waffle2/camera_rgb_optical_frame"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/base_link" -> "waffle2/caster_back_left_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/base_link" -> "waffle2/caster_back_right_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/base_link" -> "waffle2/imu_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/base_link" -> "waffle2/base_scan"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1747063264.664159"[ shape=plaintext ] ;
+}->"map";
+}

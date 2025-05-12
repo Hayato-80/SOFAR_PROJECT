@@ -24,4 +24,8 @@ ament_auto_add_executable(driving_node src/driving_node.cpp)
 ament_target_dependencies(driving_node rclcpp tf2_ros tf2_geometry_msgs nav_msgs geometry_msgs)
 
 
+ament_auto_add_executable(new_scan src/new_scan.cpp)
+ament_target_dependencies(new_scan rclcpp tf2_ros tf2_geometry_msgs nav_msgs geometry_msgs sensor_msgs)
+
+
 ament_auto_package()
