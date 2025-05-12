@@ -56,24 +56,11 @@ private:
     void lidarCallback(const sensor_msgs::msg::LaserScan::SharedPtr scan) {
 
         RCLCPP_INFO(this->get_logger(), "lidarCallback...");
-
-        // geometry_msgs::msg::TransformStamped map_to_odom;
-        // map_to_odom.header.stamp = scan->header.stamp;
-        // map_to_odom.header.frame_id = "map";
-        // map_to_odom.child_frame_id = "odom_frame_fhj";
-        // map_to_odom.transform.translation.x = 0.0;
-        // map_to_odom.transform.translation.y = 0.0;
-        // map_to_odom.transform.translation.z = 0.0;
-        // map_to_odom.transform.rotation.x = 0.0;
-        // map_to_odom.transform.rotation.y = 0.0;
-        // map_to_odom.transform.rotation.z = 0.0;
-        // map_to_odom.transform.rotation.w = 1.0;
-        //tf_broadcaster_->sendTransform(map_to_odom);
         
         // cluster settings
-        const float min_box_size = 0.15;
-        const float max_box_size = 3.0;
-        const float cluster_tolerance = 0.5;
+        const float min_box_size = 0.08;
+        const float max_box_size = 2.5;
+        const float cluster_tolerance = 0.2;
 
         std::vector<std::pair<float, float>> cluster_points;
         
@@ -105,34 +92,6 @@ private:
             processCluster(cluster_points, min_box_size, max_box_size, detected_obstacles);
         }
 
-        // // Clear grid
-        // std::fill(grid_.data.begin(), grid_.data.end(), 0);
-
-        // // Transform and mark detected obstacles in the grid
-        // for (const auto& obstacle : detected_obstacles) {
-        //     geometry_msgs::msg::PointStamped obstacle_point;
-        //     obstacle_point.header.frame_id = scan->header.frame_id;
-        //     obstacle_point.header.stamp = this->get_clock()->now();
-        //     obstacle_point.point.x = obstacle.first;
-        //     obstacle_point.point.y = obstacle.second;
-        //     obstacle_point.point.z = 0.0;
-
-        //     try {
-        //         geometry_msgs::msg::PointStamped transformed_point;
-        //         transformed_point = tf_buffer_.transform(obstacle_point, "map", tf2::durationFromSec(1.0));
-
-        //         // Convert map coordinates to grid indices
-        //         int mx = static_cast<int>((transformed_point.point.x - grid_.info.origin.position.x) / grid_.info.resolution);
-        //         int my = static_cast<int>((transformed_point.point.y - grid_.info.origin.position.y) / grid_.info.resolution);
-
-        //         if (mx >= 0 && mx < static_cast<int>(grid_.info.width) &&
-        //             my >= 0 && my < static_cast<int>(grid_.info.height)) {
-        //             grid_.data[my * grid_.info.width + mx] = 100; // Mark as occupied
-        //         }
-        //     } catch (const tf2::TransformException& ex) {
-        //         RCLCPP_WARN(this->get_logger(), "Failed to transform point to map frame: %s", ex.what());
-        //     }
-        // }
 
         processCluster(cluster_points, min_box_size, max_box_size, detected_obstacles);
 
@@ -154,8 +113,8 @@ private:
                     try {
                         geometry_msgs::msg::PointStamped transformed_point;
                         transformed_point = tf_buffer_.transform(obstacle_point, "map", tf2::durationFromSec(2.0));
-                        int mx = static_cast<int>((transformed_point.point.x - grid_.info.origin.position.x) / grid_.info.resolution);
-                        int my = static_cast<int>((transformed_point.point.y - grid_.info.origin.position.y) / grid_.info.resolution);
+                        int mx = static_cast<int>(std::round((transformed_point.point.x - grid_.info.origin.position.x) / grid_.info.resolution));
+                        int my = static_cast<int>(std::round((transformed_point.point.y - grid_.info.origin.position.y) / grid_.info.resolution));
                         if (mx >= 0 && mx < static_cast<int>(grid_.info.width) &&
                             my >= 0 && my < static_cast<int>(grid_.info.height)) {
                             grid_.data[my * grid_.info.width + mx] = 100;
@@ -166,6 +125,42 @@ private:
                 }
             }
         }
+
+        // // Mark all points from the scan as occupied
+        // for (size_t i = 0; i < scan->ranges.size(); ++i)
+        // {
+        //     float distance = scan->ranges[i];
+        //     if (distance > scan->range_min && distance < scan->range_max)
+        //     {
+        //         float angle = scan->angle_min + i * scan->angle_increment;
+        //         float x = distance * std::cos(angle);
+        //         float y = distance * std::sin(angle);
+
+        //         geometry_msgs::msg::PointStamped obstacle_point;
+        //         obstacle_point.header.frame_id = scan->header.frame_id;
+        //         obstacle_point.header.stamp = scan->header.stamp;
+        //         obstacle_point.point.x = x;
+        //         obstacle_point.point.y = y;
+        //         obstacle_point.point.z = 0.0;
+
+        //         try
+        //         {
+        //             geometry_msgs::msg::PointStamped transformed_point;
+        //             transformed_point = tf_buffer_.transform(obstacle_point, "map", tf2::durationFromSec(2.0));
+        //             int mx = static_cast<int>(std::round((transformed_point.point.x - grid_.info.origin.position.x) / grid_.info.resolution));
+        //             int my = static_cast<int>(std::round((transformed_point.point.y - grid_.info.origin.position.y) / grid_.info.resolution));
+        //             if (mx >= 0 && mx < static_cast<int>(grid_.info.width) &&
+        //                 my >= 0 && my < static_cast<int>(grid_.info.height))
+        //             {
+        //                 grid_.data[my * grid_.info.width + mx] = 100;
+        //             }
+        //         }
+        //         catch (const tf2::TransformException &ex)
+        //         {
+        //             RCLCPP_WARN(this->get_logger(), "Failed to transform point to map frame: %s", ex.what());
+        //         }
+        //     }
+        // }
 
         grid_.header.stamp = this->get_clock()->now();
         grid_pub_->publish(grid_);
