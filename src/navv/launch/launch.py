@@ -79,6 +79,14 @@ def generate_launch_description():
         arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom_frame_fhj']
     )
 
+    static_tf_node_2 = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_transform_publisher',
+        output='screen',
+        arguments=['-0.064', '0', '0.132', '0', '0', '0', 'waffle2/base_footprint_fhj', 'waffle2/base_scan']
+    )
+
     localization_node = Node(
         package='turt_localization',
         executable='turt_localize',
@@ -89,12 +97,26 @@ def generate_launch_description():
 
     obstacle_detection_node = Node(
         package='detect_obstacles',
-        executable='create_map',
-        name='create_map_node',
+        executable='find_obstacles',
+        name='find_obstacles_node',
         output='screen',
         parameters=[{'use_sim_time': False}],
+        remappings=[
+            ('/waffle2/odom', '/waffle2/odom_fhj')
+        ]
+    )
+
+    obstacle_detection_node = Node(
+        package='detect_obstacles',
+        executable='find_obstacles',
+        name='find_obstacles',
+        output='screen',
+        parameters=[
+            # PathJoinSubstitution([get_package_share_directory(PACKAGE_NAME), 'config', 'driving_node.yaml']),
+            {'use_sim_time': True}
+        ]
         # remappings=[
-        #     ('/waffle2/odom', '/waffle2/odom_fhj')
+        #     ('/odom', '/odom_fhj')
         # ]
     )
 
@@ -122,6 +144,7 @@ def generate_launch_description():
     # ld.add_action(spawn_turtlebot_cmd)
     ld.add_action(rviz_node)
     ld.add_action(static_tf_node)
+    ld.add_action(static_tf_node_2)
     ld.add_action(localization_node)
     ld.add_action(obstacle_detection_node)
     ld.add_action(driving_node)
