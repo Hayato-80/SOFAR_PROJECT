@@ -74,12 +74,21 @@ def generate_launch_description():
             ('/odom', '/odom_fhj')
         ]
     )
+    amcl_node = Node(
+        package='nav2_amcl',
+        executable='amcl',
+        name='amcl',
+        output='screen',
+        parameters=[{'use_sim_time': True}],
+        remappings=[('/odom', '/odom_fhj')]
+    )
 
     # Launch description
     ld = LaunchDescription()
 
     # Add actions to the launch description
     ld.add_action(rviz_node)
+    ld.add_action(amcl_node)
     ld.add_action(static_tf_node)
     ld.add_action(localization_node)
     ld.add_action(obstacle_detection_node)

@@ -8,6 +8,7 @@
 #include <cmath>
 #include <vector>
 #include <limits>
+#include <tf2_ros/transform_broadcaster.h>
 
 class ObstacleDetector : public rclcpp::Node {
 public:
@@ -19,6 +20,7 @@ public:
         grid_pub_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>("/map", 1);
 
         // Initialize occupancy grid
+        
         grid_.header.frame_id = "map";
         grid_.info.resolution = 0.1; // 10cm per cell
         grid_.info.width = 200;      // 20m x 20m grid
@@ -37,11 +39,25 @@ private:
     tf2_ros::Buffer tf_buffer_;
     tf2_ros::TransformListener tf_listener_;
     nav_msgs::msg::OccupancyGrid grid_;
+    std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
     struct ObstacleRect {
             float min_x, max_x, min_y, max_y;
     };
 
     void lidarCallback(const sensor_msgs::msg::LaserScan::SharedPtr scan) {
+        // geometry_msgs::msg::TransformStamped map_to_odom;
+        // map_to_odom.header.stamp = scan->header.stamp;
+        // map_to_odom.header.frame_id = "map";
+        // map_to_odom.child_frame_id = "odom_frame_fhj";
+        // map_to_odom.transform.translation.x = 0.0;
+        // map_to_odom.transform.translation.y = 0.0;
+        // map_to_odom.transform.translation.z = 0.0;
+        // map_to_odom.transform.rotation.x = 0.0;
+        // map_to_odom.transform.rotation.y = 0.0;
+        // map_to_odom.transform.rotation.z = 0.0;
+        // map_to_odom.transform.rotation.w = 1.0;
+        //tf_broadcaster_->sendTransform(map_to_odom);
+        
         // cluster settings
         const float min_box_size = 0.05;
         const float max_box_size = 2.0;
@@ -117,7 +133,8 @@ private:
                 for (float y = rect.min_y; y <= rect.max_y; y += grid_.info.resolution) {
                     geometry_msgs::msg::PointStamped obstacle_point;
                     obstacle_point.header.frame_id = scan->header.frame_id;
-                    obstacle_point.header.stamp = this->get_clock()->now();
+                    //obstacle_point.header.stamp = this->get_clock()->now();
+                    obstacle_point.header.stamp = scan->header.stamp;
                     obstacle_point.point.x = x;
                     obstacle_point.point.y = y;
                     obstacle_point.point.z = 0.0;
