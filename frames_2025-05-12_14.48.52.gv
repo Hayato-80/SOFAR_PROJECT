@@ -1,0 +1,20 @@
+digraph G {
+"world" -> "map"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"map" -> "odom_frame_fhj"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"odom_frame_fhj" -> "waffle2/base_footprint_fhj"[label=" Broadcaster: default_authority\nAverage rate: 20.198\nBuffer length: 5.05\nMost recent transform: 1740062465.273943\nOldest transform: 1740062460.223952\n"];
+"waffle2/base_link" -> "waffle2/wheel_left_link"[label=" Broadcaster: default_authority\nAverage rate: 12.765\nBuffer length: 4.7\nMost recent transform: 1740062465.224042\nOldest transform: 1740062460.523873\n"];
+"waffle2/base_footprint" -> "waffle2/base_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/base_link" -> "waffle2/wheel_right_link"[label=" Broadcaster: default_authority\nAverage rate: 12.765\nBuffer length: 4.7\nMost recent transform: 1740062465.224042\nOldest transform: 1740062460.523873\n"];
+"waffle2/odom" -> "waffle2/base_footprint"[label=" Broadcaster: default_authority\nAverage rate: 20.203\nBuffer length: 4.9\nMost recent transform: 1740062465.224042\nOldest transform: 1740062460.323882\n"];
+"waffle2/base_link" -> "waffle2/camera_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/camera_link" -> "waffle2/camera_rgb_frame"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/camera_rgb_frame" -> "waffle2/camera_rgb_optical_frame"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/base_link" -> "waffle2/caster_back_left_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/base_link" -> "waffle2/caster_back_right_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/base_link" -> "waffle2/imu_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"waffle2/base_link" -> "waffle2/base_scan"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1747054132.5395594"[ shape=plaintext ] ;
+}->"waffle2/odom";
+}
