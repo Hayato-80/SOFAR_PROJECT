@@ -61,8 +61,9 @@ private:
 
     geometry_msgs::msg::PoseStamped create_vector_pose(double x, double y) {
         geometry_msgs::msg::PoseStamped vector;
-        //vector.header.frame_id = "waffle2/base_link";
-        vector.header.frame_id = "waffle2/base_footprint";
+        // vector.header.frame_id = "waffle2/base_link";
+        //  vector.header.frame_id = "waffle2/base_footprint";
+        vector.header.frame_id = "base_footprint";
         vector.header.stamp = this -> get_clock() -> now();
         vector.pose.position.x = 0.0;
         vector.pose.position.y = 0.0;

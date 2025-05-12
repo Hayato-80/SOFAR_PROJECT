@@ -13,6 +13,12 @@ create_map() : Node("create_map")
   {
     auto qos = rclcpp::QoS(rclcpp::KeepLast(1)).transient_local();
 
+    this->declare_parameter<bool>("use_sim_time", false);
+    bool use_sim_time = this->get_parameter("use_sim_time").as_bool();
+    if (use_sim_time) {
+        this->set_parameter(rclcpp::Parameter("use_sim_time", true));
+    }
+
     // subscription_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
     //   "/scan", 10,
     //   std::bind(&lidar::lidar_callback, this, std::placeholders::_1));
@@ -112,8 +118,9 @@ private:
 
 int main(int argc, char * argv[])
 {
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<create_map>());
-  rclcpp::shutdown();
-  return 0;
+    rclcpp::init(argc, argv);
+
+    rclcpp::spin(std::make_shared<create_map>());
+    rclcpp::shutdown();
+    return 0;
 }

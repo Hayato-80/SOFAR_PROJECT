@@ -17,132 +17,146 @@ using namespace std::chrono_literals;
 
 class MyNode : public rclcpp::Node
 {
-  public:
-    MyNode() : Node("my_node"), 
-      x_(0.0), y_(0.0), theta_(0.0), 
-      past_left_value(0.0), past_right_value(0.0),
-      radius(0.033), width(0.287), first_reading(true) // put x, y, theta, last left/right pos, 
-    {
+    public:
+        MyNode() : Node("my_node", rclcpp::NodeOptions().use_intra_process_comms(true)), 
+            x_(0.0), y_(0.0), theta_(0.0), 
+            past_left_value(0.0), past_right_value(0.0),
+            radius(0.033), width(0.287), first_reading(true) // put x, y, theta, last left/right pos, 
+        {
+                // Check if the parameter is already declared
+                if (!this->has_parameter("use_sim_time")) {
+                    this->declare_parameter<bool>("use_sim_time", true);
+                }
 
-        // init subscribers
-        my_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
-                    "/waffle2/joint_states", 10, std::bind(&MyNode::my_callback, this, std::placeholders::_1));
+                bool use_sim_time;
+                this->get_parameter("use_sim_time", use_sim_time);
+                RCLCPP_INFO(this->get_logger(), "use_sim_time set to: %s", use_sim_time ? "true" : "false");
 
-        // init publishers
-        my_publisher = this->create_publisher<nav_msgs::msg::Odometry>("/waffle2/odom_fhj", 10);   // topic + QoS
+                if (use_sim_time) {
+                    this->set_parameter(rclcpp::Parameter("use_sim_time", true));
+                }
+
+                // init subscribers
+                my_subscription = this->create_subscription<sensor_msgs::msg::JointState>(
+                        "/joint_states", 10, std::bind(&MyNode::my_callback, this, std::placeholders::_1));
+                
+                // init publishers
+                my_publisher = this->create_publisher<nav_msgs::msg::Odometry>("/waffle2/odom_fhj", 10);   // topic + QoS
+                
+                tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this); // broadcasts the transformation
+
+                past_time = this->now(); // used for velocity
+
+                RCLCPP_INFO(this->get_logger(), "/waffle2/odom_fhj node started");
+        }
+
+    private:
+        // declare any subscriber / publisher / timer -- not say what they are, just declare them
+        rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr my_subscription; 
+        rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr my_publisher;
+        std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
+
+        // constant value of radius for calculation
+        const double radius, width; 
+
+        // declare past value variables
+        double past_left_value, past_right_value;
+        double x_, y_, theta_;
+        bool first_reading;
+        rclcpp::Time past_time;
         
-        tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this); // broadcasts the transformation
+        void my_callback(sensor_msgs::msg::JointState msg)
+        {
+            geometry_msgs::msg::TransformStamped transform;
 
-        past_time = this->now(); // used for velocity
+            double leftPosition{msg.position[0]}, leftVelocity{msg.velocity[0]}, 
+                         rightPosition{msg.position[1]}, rightVelocity{msg.velocity[1]};
+            
+            // calculate values of x, y, theta: 
+            if(first_reading == true)
+            {
+                past_left_value = leftPosition;
+                past_right_value = rightPosition;
+                first_reading = false;
+            }
+            rclcpp::Time current_time = this->now();
+            double delta_t{(current_time - past_time).seconds()}; 
 
-        RCLCPP_INFO(this->get_logger(), "/waffle2/odom_fhj node started");
-    }
+            double delta_q_l{leftPosition - past_left_value}, 
+                         delta_q_r{rightPosition - past_right_value};
+            double deltaD{(radius * delta_q_l + radius * delta_q_r)/2.0}, 
+                         delta_theta{(radius * delta_q_l - radius * delta_q_r) / width};
+            double calc_theta{theta_ + delta_theta};
+            double calc_x{x_ + deltaD * cos((calc_theta + theta_)/2)}, 
+                         calc_y{y_ + deltaD * sin((calc_theta + theta_)/2)};
 
-  private:
-    // declare any subscriber / publisher / timer -- not say what they are, just declare them
-    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr my_subscription; 
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr my_publisher;
-    std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
-
-    // constant value of radius for calculation
-    const double radius, width; 
-
-    // declare past value variables
-    double past_left_value, past_right_value;
-    double x_, y_, theta_;
-    bool first_reading;
-    rclcpp::Time past_time;
-    
-    void my_callback(sensor_msgs::msg::JointState msg)
-    {
-      geometry_msgs::msg::TransformStamped transform;
-
-      double leftPosition{msg.position[0]}, leftVelocity{msg.velocity[0]}, 
-             rightPosition{msg.position[1]}, rightVelocity{msg.velocity[1]};
-      
-      // calculate values of x, y, theta: 
-      if(first_reading == true)
-      {
-        past_left_value = leftPosition;
-        past_right_value = rightPosition;
-        first_reading = false;
-      }
-      rclcpp::Time current_time = this->now();
-      double delta_t{(current_time - past_time).seconds()}; 
-
-      double delta_q_l{leftPosition - past_left_value}, 
-             delta_q_r{rightPosition - past_right_value};
-      double deltaD{(radius * delta_q_l + radius * delta_q_r)/2.0}, 
-             delta_theta{(radius * delta_q_l - radius * delta_q_r) / width};
-      double calc_theta{theta_ + delta_theta};
-      double calc_x{x_ + deltaD * cos((calc_theta + theta_)/2)}, 
-             calc_y{y_ + deltaD * sin((calc_theta + theta_)/2)};
-
-      // calculate vales of linear and angular velocity:
-      double vel_x{(calc_x - x_)/delta_t}, 
-             omega{(delta_theta)/delta_t};
+            // calculate vales of linear and angular velocity:
+            double vel_x{(calc_x - x_)/delta_t}, 
+                         omega{(delta_theta)/delta_t};
 
 
-      tf2::Quaternion quat;
-    
-      quat.setRPY(0, 0, calc_theta); // use calculated theta to determine quaternion
+            tf2::Quaternion quat;
+        
+            quat.setRPY(0, 0, calc_theta); // use calculated theta to determine quaternion
 
-      nav_msgs::msg::Odometry out_msg; //
+            nav_msgs::msg::Odometry out_msg; //
 
-      // Header stuff
-      out_msg.header.frame_id = "waffle2/odom_frame_fhj"; // link frames
-      out_msg.child_frame_id = "waffle2/base_footprint"; // to the base frame
-      
+            // Header stuff
+            out_msg.header.stamp = this->now();
+            out_msg.header.frame_id = "waffle2/odom_frame_fhj"; // link frames
+    //   out_msg.child_frame_id = "waffle2/base_footprint"; // to the base frame
+            out_msg.child_frame_id = "base_footprint";  // to the base frame
 
-      // Set position:
-      out_msg.pose.pose.position.x = calc_x;
-      out_msg.pose.pose.position.y = calc_y;
-      out_msg.pose.pose.position.z = 0; // in 2d there is no z
-      out_msg.pose.pose.orientation.x = quat.x();
-      out_msg.pose.pose.orientation.y = quat.y();
-      out_msg.pose.pose.orientation.z = quat.z();
-      out_msg.pose.pose.orientation.w = quat.w();
+            // Set position:
+            out_msg.pose.pose.position.x = calc_x;
+            out_msg.pose.pose.position.y = calc_y;
+            out_msg.pose.pose.position.z = 0; // in 2d there is no z
+            out_msg.pose.pose.orientation.x = quat.x();
+            out_msg.pose.pose.orientation.y = quat.y();
+            out_msg.pose.pose.orientation.z = quat.z();
+            out_msg.pose.pose.orientation.w = quat.w();
 
-      // Set twist:
-      out_msg.twist.twist.linear.x = vel_x;
-      out_msg.twist.twist.linear.y = 0;
-      out_msg.twist.twist.linear.z = 0;
-      out_msg.twist.twist.angular.x = 0;
-      out_msg.twist.twist.angular.y = 0;
-      out_msg.twist.twist.angular.z = omega;
+            // Set twist:
+            out_msg.twist.twist.linear.x = vel_x;
+            out_msg.twist.twist.linear.y = 0;
+            out_msg.twist.twist.linear.z = 0;
+            out_msg.twist.twist.angular.x = 0;
+            out_msg.twist.twist.angular.y = 0;
+            out_msg.twist.twist.angular.z = omega;
 
-      // Create transform:
-      transform.transform.translation.x = calc_x;
-      transform.transform.translation.y = calc_y;
-      transform.transform.translation.z = 0;
-      transform.transform.rotation.x = quat.x();
-      transform.transform.rotation.y = quat.y();
-      transform.transform.rotation.z = quat.z();
-      transform.transform.rotation.w = quat.w();
+            // Create transform:
+            transform.transform.translation.x = calc_x;
+            transform.transform.translation.y = calc_y;
+            transform.transform.translation.z = 0;
+            transform.transform.rotation.x = quat.x();
+            transform.transform.rotation.y = quat.y();
+            transform.transform.rotation.z = quat.z();
+            transform.transform.rotation.w = quat.w();
 
-      transform.header.stamp = this->get_clock()->now();
-      transform.header.frame_id = "waffle2/odom_frame_fhj";
-      transform.child_frame_id = "waffle2/base_footprint";
+            transform.header.stamp = this->get_clock()->now();
+            transform.header.frame_id = "waffle2/odom_frame_fhj";
+            //   transform.child_frame_id = "waffle2/base_footprint";
+            transform.child_frame_id = "base_footprint";
 
-      my_publisher->publish(out_msg);
-      tf_broadcaster->sendTransform(transform);
+            my_publisher->publish(out_msg);
+            tf_broadcaster->sendTransform(transform);
+            RCLCPP_INFO(this->get_logger(), "Published odometry and transform");
+            
+            // update past variables
+            past_left_value = leftPosition;
+            past_right_value = rightPosition;
+            past_time = current_time;
 
-
-      // update past variables
-      past_left_value = leftPosition;
-      past_right_value = rightPosition;
-      past_time = current_time;
-
-      x_ = calc_x;
-      y_ = calc_y;
-      theta_ = calc_theta;
-    }
+            x_ = calc_x;
+            y_ = calc_y;
+            theta_ = calc_theta;
+        }
 };
 
 int main(int argc, char * argv[])
 {
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<MyNode>());
-  rclcpp::shutdown();
-  return 0;
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<MyNode>());
+    rclcpp::shutdown();
+    return 0;
 }

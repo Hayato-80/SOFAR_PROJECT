@@ -21,6 +21,13 @@ namespace navv
         DrivingNode(rclcpp::NodeOptions options) : Node("driving_node", options),
                                                    tf_buffer(this->get_clock(), std::chrono::seconds(10), std::shared_ptr<rclcpp::Node>())
         {
+            // Declare and set the use_sim_time parameter
+            this->declare_parameter<bool>("use_sim_time", false);
+            bool use_sim_time = this->get_parameter("use_sim_time").as_bool();
+            if (use_sim_time) {
+                this->set_parameter(rclcpp::Parameter("use_sim_time", true));
+            }
+
             // Declare parameters with default values
             this->declare_parameter("speed", 0.3);
             this->declare_parameter("delta_t", 0.5);
@@ -43,7 +50,7 @@ namespace navv
                 "/map", 10, std::bind(&DrivingNode::map_callback, this, std::placeholders::_1));
 
 
-            pub_vel = this->create_publisher<geometry_msgs::msg::Twist>("/waffle2/cmd_vel", 10); // topic + QoS
+            pub_vel = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10); // topic + QoS
 
             marker_pub = this->create_publisher<visualization_msgs::msg::Marker>("/goal_marker", 10);
         }
