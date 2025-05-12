@@ -148,6 +148,16 @@ private:
                             my >= 0 && my < static_cast<int>(grid_.info.height)) {
                             grid_.data[my * grid_.info.width + mx] = 100;
                         }
+                        for (int dx = -1; dx <= 1; ++dx) {
+                            for (int dy = -1; dy <= 1; ++dy) {
+                                int nx = mx + dx;
+                                int ny = my + dy;
+                                if (nx >= 0 && nx < static_cast<int>(grid_.info.width) &&
+                                    ny >= 0 && ny < static_cast<int>(grid_.info.height)) {
+                                    grid_.data[ny * grid_.info.width + nx] = 100;
+                                }
+                            }
+                        }   
                     } catch (const tf2::TransformException& ex) {
                         RCLCPP_WARN(this->get_logger(), "Failed to transform point to map frame: %s", ex.what());
                     }
@@ -186,6 +196,7 @@ private:
 
 int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
+    rclcpp::NodeOptions options;
     rclcpp::spin(std::make_shared<ObstacleDetector>());
     rclcpp::shutdown();
     return 0;

@@ -34,7 +34,7 @@ namespace navv
             tf_listener = std::make_shared<tf2_ros::TransformListener>(tf_buffer);
 
             sub_pose = this->create_subscription<nav_msgs::msg::Odometry>(
-                "/waffle2/odom_fhj", 10, std::bind(&DrivingNode::my_callback, this, std::placeholders::_1));
+                "/odom_fhj", 10, std::bind(&DrivingNode::my_callback, this, std::placeholders::_1));
 
             sub_goal_pose = this->create_subscription<geometry_msgs::msg::PoseStamped>(
                 "/goal_pose", 10, std::bind(&DrivingNode::goal_pose_callback, this, std::placeholders::_1));
@@ -42,7 +42,7 @@ namespace navv
             sub_map = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
                 "/map", 10, std::bind(&DrivingNode::map_callback, this, std::placeholders::_1));
 
-            pub_vel = this->create_publisher<geometry_msgs::msg::Twist>("/waffle2/cmd_vel", 10); // topic + QoS
+            pub_vel = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10); // topic + QoS
 
             marker_pub = this->create_publisher<visualization_msgs::msg::Marker>("/goal_marker", 10);
 
@@ -118,9 +118,9 @@ namespace navv
             goal_marker.type = visualization_msgs::msg::Marker::SPHERE;
             goal_marker.action = visualization_msgs::msg::Marker::ADD;
             goal_marker.pose = goal_msg.pose;
-            goal_marker.scale.x = 0.035;
-            goal_marker.scale.y = 0.035;
-            goal_marker.scale.z = 0.035;
+            goal_marker.scale.x = 0.2;
+            goal_marker.scale.y = 0.2;
+            goal_marker.scale.z = 0.2;
             goal_marker.color.a = 1.0;
             goal_marker.color.r = 1.0;
             goal_marker.color.g = 0.0;
@@ -158,7 +158,7 @@ namespace navv
             RCLCPP_INFO(this->get_logger(), "UPDATED GOAL goal pose in odom: x=%f, y=%f",
                         goal_msg.pose.position.x, goal_msg.pose.position.y);
 
-            for (float omega = -3.0; omega < 3.0; omega += 0.05)
+            for (float omega = -2.0; omega < 2.0; omega += 0.05)
             {
                 x_pred = x_current + speed * (delta_t * cos(theta_current + omega / 2 * delta_t));
                 y_pred = y_current + speed * (delta_t * sin(theta_current + omega / 2 * delta_t));
@@ -233,9 +233,9 @@ namespace navv
             target_marker.pose.position.y = y_pred_save;
             target_marker.pose.position.z = 0.0;    // Assuming a 2D plane
             target_marker.pose.orientation.w = 1.0; // Neutral orientation
-            target_marker.scale.x = 0.05;
-            target_marker.scale.y = 0.05;
-            target_marker.scale.z = 0.05;
+            target_marker.scale.x = 0.15;
+            target_marker.scale.y = 0.15;
+            target_marker.scale.z = 0.15;
             target_marker.color.a = 1.0;
             target_marker.color.r = 0.0;
             target_marker.color.g = 1.0; // Green color
@@ -246,7 +246,7 @@ namespace navv
             // RCLCPP_INFO(this->get_logger(), "turtle2 pose: x=%f, y=%f", pose.position.x, pose.position.y);
 
             cmd_vel_msg.linear.x = speed;
-            cmd_vel_msg.angular.z = omega_to_send ;
+            cmd_vel_msg.angular.z = -omega_to_send;
 
             RCLCPP_INFO(this->get_logger(), "Current position in odom: x=%f, y=%f, theta=%f",
                         x_current, y_current, theta_current);

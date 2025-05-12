@@ -57,8 +57,8 @@ class MyNode : public rclcpp::Node
     {
       geometry_msgs::msg::TransformStamped transform;
 
-      double leftPosition{msg.position[0]}, leftVelocity{msg.velocity[0]}, 
-             rightPosition{msg.position[1]}, rightVelocity{msg.velocity[1]};
+      double leftPosition{msg.position[1]}, leftVelocity{msg.velocity[1]}, 
+             rightPosition{msg.position[0]}, rightVelocity{msg.velocity[0]};
       
       // calculate values of x, y, theta: 
       if(first_reading == true)

@@ -7,7 +7,7 @@ from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
 
 PACKAGE_NAME = 'navv'
-RVIZ_CONFIG_PATH = PathJoinSubstitution([get_package_share_directory(PACKAGE_NAME), 'ros', 'config', 'kame.rviz'])
+#RVIZ_CONFIG_PATH = PathJoinSubstitution([get_package_share_directory(PACKAGE_NAME), 'ros', 'config', 'kame.rviz'])
 
 def generate_launch_description():
 
@@ -88,7 +88,7 @@ def generate_launch_description():
 
     # Add actions to the launch description
     ld.add_action(rviz_node)
-    ld.add_action(amcl_node)
+    #ld.add_action(amcl_node)
     ld.add_action(static_tf_node)
     ld.add_action(localization_node)
     ld.add_action(obstacle_detection_node)
