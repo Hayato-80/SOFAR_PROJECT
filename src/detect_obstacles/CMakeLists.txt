@@ -27,6 +27,7 @@ ament_target_dependencies(find_obstacles
   rclcpp
   geometry_msgs
   sensor_msgs
+  nav_msgs
   tf2
   tf2_ros
   tf2_geometry_msgs

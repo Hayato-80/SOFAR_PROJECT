@@ -37,21 +37,34 @@ def generate_launch_description():
         parameters=[{'use_sim_time': True}]
     )
 
+    # obstacle_detection_node = Node(
+    #     package='detect_obstacles',
+    #     executable='create_map',
+    #     name='create_map_node',
+    #     output='screen',
+    #     parameters=[{'use_sim_time': True}],
+    #     remappings=[
+    #         ('/odom', '/odom_fhj')
+    #     ]
+    # )
+
     obstacle_detection_node = Node(
         package='detect_obstacles',
-        executable='create_map',
-        name='create_map_node',
+        executable='find_obstacles',
+        name='find_obstacles',
         output='screen',
-        parameters=[{'use_sim_time': True}],
+        parameters=[
+            # PathJoinSubstitution([get_package_share_directory(PACKAGE_NAME), 'config', 'driving_node.yaml']),
+            {'use_sim_time': True}
+        ],
         remappings=[
             ('/odom', '/odom_fhj')
         ]
     )
-
     driving_node = Node(
-        package='detect_obstacles',
-        executable='potential_field_node',
-        name='potential_field_node',
+        package='navv',
+        executable='driving_node',
+        name='driving_node',
         output='screen',
         parameters=[
             # PathJoinSubstitution([get_package_share_directory(PACKAGE_NAME), 'config', 'driving_node.yaml']),
@@ -67,7 +80,7 @@ def generate_launch_description():
 
     # Add actions to the launch description
     ld.add_action(rviz_node)
-    #ld.add_action(static_tf_node)
+    ld.add_action(static_tf_node)
     ld.add_action(localization_node)
     ld.add_action(obstacle_detection_node)
     ld.add_action(driving_node)

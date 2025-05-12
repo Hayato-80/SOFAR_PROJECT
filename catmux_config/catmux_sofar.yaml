@@ -4,7 +4,7 @@ common:
   #   - sourcing an environment
   #   - ssh-ing to another machine
   before_commands:
-    - source ~/.bashrc && cd mov_ws # before commands can be specified global and per window
+    - source ~/.bashrc # before commands can be specified global and per window
 
   # The default window will be the one displayed when first connecting to the tmux session
   default_window: gazebo
@@ -20,21 +20,47 @@ windows:
     layout: no_split # One can use the default layouts specified by tmux
     splits:
       - commands:
-        - ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py
+        - ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+
+      # - ros2 launch turtlebot3_gazebo empty_world.launch.py
   # - name: rviz
   #   if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
   #   layout: no_split # One can use the default layouts specified by tmux
   #   splits:
   #     - commands:
   #       - rviz2
-  - name: navigation
+  # - name: navigation
+  #   if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
+  #   layout: no_split # One can use the default layouts specified by tmux
+  #   splits:
+  #     - commands:
+  #       - ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:=$HOME/mov_ws/src/SOFAR_PROJECT/map.yaml
+
+  # - name: navigation
+  #   if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
+  #   layout: no_split # One can use the default layouts specified by tmux
+  #   commands:
+  #     - ros2 run navv driving_node
+
+  - name: potential
     if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
     layout: no_split # One can use the default layouts specified by tmux
-    splits:
-      - commands:
-        - ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:=$HOME/mov_ws/src/SOFAR_PROJECT/map.yaml
+    commands:
+      - ros2 run detect_obstacles potential_field_node 
+  
+  - name: new_odom
+    if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
+    layout: no_split # One can use the default layouts specified by tmux
+    commands:
+      - ros2 run turt_localization turt_localize
 
-  - name: some_other_window
+  - name: rqt
+    if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
+    layout: no_split # One can use the default layouts specified by tmux
+    commands:
+      - rqt
+
+  - name: some_other_window4
     if: show_layouts # this window will only be started when the 'show_layouts' parameter is true
     layout: no_split # One can use the default layouts specified by tmux
     commands:
