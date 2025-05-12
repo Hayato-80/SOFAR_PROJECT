@@ -1,4 +1,4 @@
 driving_node:
   ros__parameters:
-    speed: 0.008
-    delta_t: 2.5
+    speed: 0.3
+    delta_t: 2.0
